@@ -1,4 +1,4 @@
-'use strict';
+`use strict`;
 
 /**
  * Default amount of rendered tasks
@@ -18,8 +18,8 @@ const getFilterMarkup = (filterData) => {
            id="filter__${filterData.label.toLowerCase()}"
            class="filter__input visually-hidden"
            name="filter"
-           ${filterData.isChecked ? 'checked' : ''}
-           ${filterData.count === 0 ? 'disabled' : ''}
+           ${filterData.isChecked ? `checked` : ``}
+           ${filterData.count === 0 ? `disabled` : ``}
     >
     <label for="filter__${filterData.label.toLowerCase()}" class="filter__label"> ${filterData.label}
       <span class="filter__${filterData.label.toLowerCase()}-count">${filterData.count}</span>
@@ -332,13 +332,13 @@ const getTaskMarkup = (taskData) => {
  */
 const getDataForTasks = (count) => {
   const dataStorage = {
-    types: ['repeat', 'deadline', ''],
-    colors: ['black', 'pink', 'yellow', 'blue'],
+    types: [`repeat`, `deadline`, ``],
+    colors: [`black`, `pink`, `yellow`, `blue`],
     descriptions: [
-      'Donec nec justo eget felis facilisis fermentum. Aliquam porttitor mauris sit amet orci.',
-      'Morbi in sem quis dui placerat ornare. Pellentesque odio nisi, euismod in, pharetra a, ultricies in, diam.',
-      'Praesent dapibus, neque id cursus faucibus, tortor neque egestas auguae, eu vulputate magna eros eu erat.',
-      'Phasellus ultrices nulla quis nibh. Quisque a lectus. Donec consectetuer ligula vulputate sem tristique cursus.',
+      `Donec nec justo eget felis facilisis fermentum. Aliquam porttitor mauris sit amet orci.`,
+      `Morbi in sem quis dui placerat ornare. Pellentesque odio nisi, euismod in, pharetra a, ultricies in, diam.`,
+      `Praesent dapibus, neque id cursus faucibus, tortor neque egestas auguae, eu vulputate magna eros eu erat.`,
+      `Phasellus ultrices nulla quis nibh. Quisque a lectus. Donec consectetuer ligula vulputate sem tristique cursus.`,
     ],
   };
   const data = [];
@@ -362,39 +362,69 @@ const getRandomArrayElement = (array) => {
 };
 
 /**
+ * Returns random number from range
+ * @param  {number} min
+ * @param  {number} max
+ * @return {number}
+ */
+const getRandom = function (min, max) {
+  return Math.floor(Math.random() * (max - min) + min);
+};
+
+/**
  * Returns fragment with nodes, created from valid HTML string
  * @param {string} htmlString
+ * @param appendedNodesCallback
  * @returns {Node}
  */
-const getNodeFromString = (htmlString) => {
+const getNodeFromString = (htmlString, appendedNodesCallback) => {
   const parser = new DOMParser();
-  const html = parser.parseFromString(htmlString, 'text/html');
+  const html = parser.parseFromString(htmlString, `text/html`);
   const fragment = document.createDocumentFragment();
 
   html.body.childNodes.forEach((node) => {
+    if (typeof appendedNodesCallback === `function`) {
+      appendedNodesCallback(node);
+    }
+
     fragment.appendChild(node);
   });
 
   return fragment;
 };
 
+const filterClickHandler = () => {
+  const tasksContainer = document.querySelector(`.board__tasks`);
+  const tasksHtml = getDataForTasks(getRandom(4, 10)).reduce((markup, data) => {
+    return markup + getTaskMarkup(data);
+  }, ``);
+
+  while (tasksContainer.firstChild) {
+    tasksContainer.removeChild(tasksContainer.firstChild);
+  }
+
+  tasksContainer.appendChild(getNodeFromString(tasksHtml));
+};
+
 const filtersData = [
-  {label: 'All', count: 15, isChecked: true},
-  {label: 'Overdue', count: 0},
-  {label: 'Today', count: 0},
-  {label: 'Favorites', count: 7},
-  {label: 'Repeating', count: 2},
-  {label: 'Tags', count: 6},
-  {label: 'Archive', count: 115},
+  {label: `All`, count: 15, isChecked: true},
+  {label: `Overdue`, count: 0},
+  {label: `Today`, count: 0},
+  {label: `Favorites`, count: 7},
+  {label: `Repeating`, count: 2},
+  {label: `Tags`, count: 6},
+  {label: `Archive`, count: 115},
 ];
-const filterElement = document.querySelector('.main__filter');
-const tasksContainer = document.querySelector('.board__tasks');
+const filterElement = document.querySelector(`.main__filter`);
+const tasksContainer = document.querySelector(`.board__tasks`);
 const filtersHtml = filtersData.reduce((markup, data) => {
   return markup + getFilterMarkup(data);
-}, '');
+}, ``);
 const tasksHtml = getDataForTasks(TASK_COUNT).reduce((markup, data) => {
   return markup + getTaskMarkup(data);
-}, '');
+}, ``);
 
-filterElement.appendChild(getNodeFromString(filtersHtml));
+filterElement.appendChild(getNodeFromString(filtersHtml, (node) => {
+  node.addEventListener('click', filterClickHandler);
+}));
 tasksContainer.appendChild(getNodeFromString(tasksHtml));
