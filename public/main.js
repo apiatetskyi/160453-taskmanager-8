@@ -2,15 +2,21 @@
 
 /**
  * Returns string with HTML-markup for filter element
- * @param {string} label='' Filter label
- * @param {number} count=0 Count of elements in filter
- * @param {boolean} isChecked=false
+ * @param {Object} filterData
  * @returns {string}
  */
-const getFilterMarkup = (label = '', count = 0, isChecked = false) => {
+const getFilterMarkup = (filterData) => {
   return `
-    <input type="radio" id="filter__${label.toLowerCase()}" class="filter__input visually-hidden" name="filter" ${isChecked ? 'checked' : ''} ${count === 0 ? 'disabled' : ''}>
-    <label for="filter__${label.toLowerCase()}" class="filter__label"> ${label} <span class="filter__${label.toLowerCase()}-count">${count}</span></label>`;
+    <input type="radio"
+           id="filter__${filterData.label.toLowerCase()}"
+           class="filter__input visually-hidden"
+           name="filter"
+           ${filterData.isChecked ? 'checked' : ''}
+           ${filterData.count === 0 ? 'disabled' : ''}
+    >
+    <label for="filter__${filterData.label.toLowerCase()}" class="filter__label"> ${filterData.label}
+      <span class="filter__${filterData.label.toLowerCase()}-count">${filterData.count}</span>
+    </label>`;
 };
 
 /**
@@ -41,7 +47,7 @@ const filtersData = [
 ];
 const filterElement = document.querySelector('.main__filter');
 const filtersHtml = filtersData.reduce((markup, filterData) => {
-  return markup + getFilterMarkup(filterData.label, filterData.count, filterData.isChecked);
+  return markup + getFilterMarkup(filterData);
 }, '');
 
 filterElement.appendChild(getNodeFromString(filtersHtml));
