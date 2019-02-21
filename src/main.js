@@ -1,5 +1,3 @@
-`use strict`;
-
 /**
  * Default amount of rendered tasks
  * @constant
@@ -10,7 +8,7 @@ const TASK_COUNT = 7;
 /**
  * Returns string with HTML-markup for filter element
  * @param {Object} filterData
- * @returns {string}
+ * @return {string}
  */
 const getFilterMarkup = (filterData) => {
   return `
@@ -29,7 +27,7 @@ const getFilterMarkup = (filterData) => {
 /**
  * Returns string with HTML-markup for task card
  * @param {Object} taskData
- * @returns {string}
+ * @return {string}
  */
 const getTaskMarkup = (taskData) => {
   return `
@@ -327,8 +325,8 @@ const getTaskMarkup = (taskData) => {
 
 /**
  * Returns array of randomly generated data for task card
- * @param count
- * @returns {Array}
+ * @param {number} count
+ * @return {Array}
  */
 const getDataForTasks = (count) => {
   const dataStorage = {
@@ -354,11 +352,11 @@ const getDataForTasks = (count) => {
 };
 
 /**
- * @param array
- * @returns {*}
+ * @param {Array} array
+ * @return {*}
  */
 const getRandomArrayElement = (array) => {
-  return array[Math.floor(Math.random() * array.length)]
+  return array[Math.floor(Math.random() * array.length)];
 };
 
 /**
@@ -374,8 +372,8 @@ const getRandom = function (min, max) {
 /**
  * Returns fragment with nodes, created from valid HTML string
  * @param {string} htmlString
- * @param appendedNodesCallback
- * @returns {Node}
+ * @param {Function} appendedNodesCallback
+ * @return {Node}
  */
 const getNodeFromString = (htmlString, appendedNodesCallback) => {
   const parser = new DOMParser();
@@ -425,6 +423,6 @@ const tasksHtml = getDataForTasks(TASK_COUNT).reduce((markup, data) => {
 }, ``);
 
 filterElement.appendChild(getNodeFromString(filtersHtml, (node) => {
-  node.addEventListener('click', filterClickHandler);
+  node.addEventListener(`click`, filterClickHandler);
 }));
 tasksContainer.appendChild(getNodeFromString(tasksHtml));
