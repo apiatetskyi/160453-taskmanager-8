@@ -1,37 +1,11 @@
-`use strict`;
-
-/**
- * Default amount of rendered tasks
- * @constant
- * @type {number}
- */
-const TASK_COUNT = 7;
-
-/**
- * Returns string with HTML-markup for filter element
- * @param {Object} filterData
- * @returns {string}
- */
-const getFilterMarkup = (filterData) => {
-  return `
-    <input type="radio"
-           id="filter__${filterData.label.toLowerCase()}"
-           class="filter__input visually-hidden"
-           name="filter"
-           ${filterData.isChecked ? `checked` : ``}
-           ${filterData.count === 0 ? `disabled` : ``}
-    >
-    <label for="filter__${filterData.label.toLowerCase()}" class="filter__label"> ${filterData.label}
-      <span class="filter__${filterData.label.toLowerCase()}-count">${filterData.count}</span>
-    </label>`;
-};
+import util from './util';
 
 /**
  * Returns string with HTML-markup for task card
  * @param {Object} taskData
- * @returns {string}
+ * @return {string}
  */
-const getTaskMarkup = (taskData) => {
+const getMarkup = (taskData) => {
   return `
   <article class="card card--${taskData.color} ${taskData.type ? `card--${taskData.type}` : ``}">
     <form class="card__form" method="get">
@@ -327,10 +301,10 @@ const getTaskMarkup = (taskData) => {
 
 /**
  * Returns array of randomly generated data for task card
- * @param count
- * @returns {Array}
+ * @param {number} count
+ * @return {Array}
  */
-const getDataForTasks = (count) => {
+const getData = (count) => {
   const dataStorage = {
     types: [`repeat`, `deadline`, ``],
     colors: [`black`, `pink`, `yellow`, `blue`],
@@ -345,86 +319,25 @@ const getDataForTasks = (count) => {
 
   for (let i = 0; i < count; i++) {
     data.push({
-      type: getRandomArrayElement(dataStorage.types),
-      color: getRandomArrayElement(dataStorage.colors),
-      description: getRandomArrayElement(dataStorage.descriptions),
+      type: util.getRandomArrayElement(dataStorage.types),
+      color: util.getRandomArrayElement(dataStorage.colors),
+      description: util.getRandomArrayElement(dataStorage.descriptions),
     });
   }
   return data;
 };
 
 /**
- * @param array
- * @returns {*}
+ * Returns fragment with list of task nodes
+ * @param {number} count
+ * @return {Node}
  */
-const getRandomArrayElement = (array) => {
-  return array[Math.floor(Math.random() * array.length)]
-};
-
-/**
- * Returns random number from range
- * @param  {number} min
- * @param  {number} max
- * @return {number}
- */
-const getRandom = function (min, max) {
-  return Math.floor(Math.random() * (max - min) + min);
-};
-
-/**
- * Returns fragment with nodes, created from valid HTML string
- * @param {string} htmlString
- * @param appendedNodesCallback
- * @returns {Node}
- */
-const getNodeFromString = (htmlString, appendedNodesCallback) => {
-  const parser = new DOMParser();
-  const html = parser.parseFromString(htmlString, `text/html`);
-  const fragment = document.createDocumentFragment();
-
-  html.body.childNodes.forEach((node) => {
-    if (typeof appendedNodesCallback === `function`) {
-      appendedNodesCallback(node);
-    }
-
-    fragment.appendChild(node);
-  });
-
-  return fragment;
-};
-
-const filterClickHandler = () => {
-  const tasksContainer = document.querySelector(`.board__tasks`);
-  const tasksHtml = getDataForTasks(getRandom(4, 10)).reduce((markup, data) => {
-    return markup + getTaskMarkup(data);
+const getList = (count) => {
+  const tasksHtml = getData(count).reduce((markup, data) => {
+    return markup + getMarkup(data);
   }, ``);
 
-  while (tasksContainer.firstChild) {
-    tasksContainer.removeChild(tasksContainer.firstChild);
-  }
-
-  tasksContainer.appendChild(getNodeFromString(tasksHtml));
+  return util.getNode(tasksHtml);
 };
 
-const filtersData = [
-  {label: `All`, count: 15, isChecked: true},
-  {label: `Overdue`, count: 0},
-  {label: `Today`, count: 0},
-  {label: `Favorites`, count: 7},
-  {label: `Repeating`, count: 2},
-  {label: `Tags`, count: 6},
-  {label: `Archive`, count: 115},
-];
-const filterElement = document.querySelector(`.main__filter`);
-const tasksContainer = document.querySelector(`.board__tasks`);
-const filtersHtml = filtersData.reduce((markup, data) => {
-  return markup + getFilterMarkup(data);
-}, ``);
-const tasksHtml = getDataForTasks(TASK_COUNT).reduce((markup, data) => {
-  return markup + getTaskMarkup(data);
-}, ``);
-
-filterElement.appendChild(getNodeFromString(filtersHtml, (node) => {
-  node.addEventListener('click', filterClickHandler);
-}));
-tasksContainer.appendChild(getNodeFromString(tasksHtml));
+export default {getMarkup, getData, getList};
