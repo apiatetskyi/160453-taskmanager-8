@@ -1,13 +1,37 @@
 import util from './util';
 
+const DUE_DATA_RANGE = 7;
+
 /**
  * Returns string with HTML-markup for task card
  * @param {Object} taskData
  * @return {string}
  */
 const getMarkup = (taskData) => {
+  const isRepeating = Object.keys(taskData.repeatingDays).some((value) => value);
+  const hashTags = [...taskData.tags].reduce((marhup, tagTitle) => {
+    return `${marhup}
+      <span class="card__hashtag-inner">
+        <input
+          type="hidden"
+          name="hashtag"
+          value="repeat"
+          class="card__hashtag-hidden-input"
+        />
+        <button type="button" class="card__hashtag-name">
+          ${tagTitle}
+        </button>
+        <button type="button" class="card__hashtag-delete">
+          delete
+        </button>
+      </span>`;
+  }, ``);
+
   return `
-  <article class="card card--${taskData.color} ${taskData.type ? `card--${taskData.type}` : ``}">
+  <article class="card card--${taskData.color}
+                  card--edit ${isRepeating ? `card--repeat` : ``}
+                  ${util.isExpired(taskData.dueDate) && !taskData.isDone ? `card--deadline` : ``}
+                  " style="margin-bottom: 300px">
     <form class="card__form" method="get">
       <div class="card__inner">
         <div class="card__control">
@@ -19,7 +43,7 @@ const getMarkup = (taskData) => {
           </button>
           <button
             type="button"
-            class="card__btn card__btn--favorites card__btn--disabled"
+            class="card__btn card__btn--favorites ${!taskData.isFavorite ? `card__btn--disabled` : ``}"
           >
             favorites
           </button>
@@ -37,7 +61,7 @@ const getMarkup = (taskData) => {
               class="card__text"
               placeholder="Start typing your text here..."
               name="text"
-            >${taskData.description}</textarea>
+            >${taskData.title}</textarea>
           </label>
         </div>
 
@@ -45,7 +69,7 @@ const getMarkup = (taskData) => {
           <div class="card__details">
             <div class="card__dates">
               <button class="card__date-deadline-toggle" type="button">
-                date: <span class="card__date-status">no</span>
+                date: <span class="card__date-status">${taskData.dueDate ? util.formatDate(taskData.dueDate) : `no`}</span>
               </button>
 
               <fieldset class="card__date-deadline" disabled>
@@ -68,7 +92,7 @@ const getMarkup = (taskData) => {
               </fieldset>
 
               <button class="card__repeat-toggle" type="button">
-                repeat:<span class="card__repeat-status">no</span>
+                repeat:<span class="card__repeat-status">${isRepeating ? `yes` : `no`}</span>
               </button>
 
               <fieldset class="card__repeat-days" disabled>
@@ -152,50 +176,7 @@ const getMarkup = (taskData) => {
 
             <div class="card__hashtag">
               <div class="card__hashtag-list">
-                <span class="card__hashtag-inner">
-                  <input
-                    type="hidden"
-                    name="hashtag"
-                    value="repeat"
-                    class="card__hashtag-hidden-input"
-                  />
-                  <button type="button" class="card__hashtag-name">
-                    #repeat
-                  </button>
-                  <button type="button" class="card__hashtag-delete">
-                    delete
-                  </button>
-                </span>
-
-                <span class="card__hashtag-inner">
-                  <input
-                    type="hidden"
-                    name="hashtag"
-                    value="repeat"
-                    class="card__hashtag-hidden-input"
-                  />
-                  <button type="button" class="card__hashtag-name">
-                    #cinema
-                  </button>
-                  <button type="button" class="card__hashtag-delete">
-                    delete
-                  </button>
-                </span>
-
-                <span class="card__hashtag-inner">
-                  <input
-                    type="hidden"
-                    name="hashtag"
-                    value="repeat"
-                    class="card__hashtag-hidden-input"
-                  />
-                  <button type="button" class="card__hashtag-name">
-                    #entertaiment
-                  </button>
-                  <button type="button" class="card__hashtag-delete">
-                    delete
-                  </button>
-                </span>
+                ${hashTags}
               </div>
 
               <label>
@@ -216,7 +197,7 @@ const getMarkup = (taskData) => {
               name="img"
             />
             <img
-              src="img/add-photo.svg"
+              src="${taskData.picture ? taskData.picture : `img/add-photo.svg`}"
               alt="task picture"
               class="card__img"
             />
@@ -300,31 +281,34 @@ const getMarkup = (taskData) => {
 };
 
 /**
- * Returns array of randomly generated data for task card
- * @param {number} count
- * @return {Array}
+ * Returns randomly generated data for task card
+ * @return {Object}
  */
-const getData = (count) => {
+const getData = () => {
   const dataStorage = {
-    types: [`repeat`, `deadline`, ``],
-    colors: [`black`, `pink`, `yellow`, `blue`],
-    descriptions: [
-      `Donec nec justo eget felis facilisis fermentum. Aliquam porttitor mauris sit amet orci.`,
-      `Morbi in sem quis dui placerat ornare. Pellentesque odio nisi, euismod in, pharetra a, ultricies in, diam.`,
-      `Praesent dapibus, neque id cursus faucibus, tortor neque egestas auguae, eu vulputate magna eros eu erat.`,
-      `Phasellus ultrices nulla quis nibh. Quisque a lectus. Donec consectetuer ligula vulputate sem tristique cursus.`,
-    ],
+    titles: [`Изучить теорию`, `Сделать домашку`, `Пройти интенсив на соточку`],
+    colors: [`black`, `pink`, `yellow`, `blue`, `green`],
+    tags: [`homework`, `theory`, `practice`, `intensive`, `keks`, `sport`],
   };
-  const data = [];
 
-  for (let i = 0; i < count; i++) {
-    data.push({
-      type: util.getRandomArrayElement(dataStorage.types),
-      color: util.getRandomArrayElement(dataStorage.colors),
-      description: util.getRandomArrayElement(dataStorage.descriptions),
-    });
-  }
-  return data;
+  return {
+    title: util.getRandomArrayElement(dataStorage.titles),
+    dueDate: util.getRandomDayInRange(DUE_DATA_RANGE),
+    tags: new Set(util.shuffleArray(dataStorage.tags).slice(0, util.getRandom(0, 3))),
+    picture: `http://picsum.photos/100/100?r=${Math.random()}`,
+    color: util.getRandomArrayElement(dataStorage.colors),
+    repeatingDays: {
+      Mo: Math.random() >= 0.5,
+      Tu: Math.random() >= 0.5,
+      We: Math.random() >= 0.5,
+      Th: Math.random() >= 0.5,
+      Fr: Math.random() >= 0.5,
+      Sa: Math.random() >= 0.5,
+      Su: Math.random() >= 0.5,
+    },
+    isFavorite: Math.random() >= 0.5,
+    isDone: Math.random() >= 0.5,
+  };
 };
 
 /**
@@ -333,7 +317,13 @@ const getData = (count) => {
  * @return {Node}
  */
 const getList = (count) => {
-  const tasksHtml = getData(count).reduce((markup, data) => {
+  const tasksData = [];
+
+  for (let i = 0; i < count; i++) {
+    tasksData.push(getData());
+  }
+
+  const tasksHtml = tasksData.reduce((markup, data) => {
     return markup + getMarkup(data);
   }, ``);
 
